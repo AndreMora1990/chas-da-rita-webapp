@@ -1,16 +1,16 @@
 import os
 import shutil
 
-# Recriar estrutura para nova versão funcional da app (simulada)
-new_webapp_path = "/mnt/data/chas-da-rita-webapp-v2"
-os.makedirs(new_webapp_path, exist_ok=True)
+# Caminho para a nova versão com venda personalizada e gestão de produtos
+path_v3 = "/mnt/data/chas-da-rita-webapp-v3"
+os.makedirs(path_v3, exist_ok=True)
 
-# Novo conteúdo funcional simulado
-index_html_content = """<!DOCTYPE html>
+# Novo index.html com clique simples = venda personalizada e menu de gestão de produtos
+index_html_v3 = """<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Chás da Rita - Vendas</title>
+    <title>Chás da Rita - Vendas v3</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       body { font-family: sans-serif; background: #f4f0e5; color: #3e2a1c; padding: 2rem; }
@@ -18,18 +18,17 @@ index_html_content = """<!DOCTYPE html>
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
       .card { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
       .card:hover { background: #fcefdc; }
+      .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none; z-index: 100; }
+      .modal input { padding: 0.5rem; margin-top: 1rem; width: 100%; }
+      .modal button { margin-top: 1rem; padding: 0.5rem 1rem; }
+      #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 99; }
     </style>
-    <script>
-      function registarVenda(nome, quantidade, preco) {
-        const texto = `Venda registada: ${nome} (${quantidade}g - €${preco.toFixed(2)})`;
-        alert(texto);
-      }
-    </script>
   </head>
   <body>
     <h1>Chás da Rita 🌿</h1>
+    <button onclick="abrirGestao()">⚙️ Gerir Produtos</button>
     <p>Seleciona uma categoria:</p>
-    <div class="grid">
+    <div class="grid" id="categorias">
       <div class="card" onclick="mostrarProdutos('Chás')">🍵 Chás</div>
       <div class="card" onclick="mostrarProdutos('Tisanas')">🌿 Tisanas</div>
       <div class="card" onclick="mostrarProdutos('Especiarias')">🧂 Especiarias</div>
@@ -38,9 +37,24 @@ index_html_content = """<!DOCTYPE html>
       <div class="card" onclick="mostrarProdutos('Amêndoas')">🌰 Amêndoas</div>
       <div class="card" onclick="mostrarProdutos('Outros')">✨ Outros</div>
     </div>
+
     <hr>
     <h2>Produtos</h2>
     <div id="produtos" class="grid"></div>
+
+    <div id="overlay"></div>
+    <div id="modal" class="modal">
+      <h3 id="modalTitulo">Venda personalizada</h3>
+      <input type="number" id="quantidadeInput" placeholder="Quantos gramas ou unidades?">
+      <button onclick="registarVendaPersonalizada()">Registar Venda</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
+
+    <div id="modalGestao" class="modal">
+      <h3>Gestão de Produtos</h3>
+      <div id="listaProdutos"></div>
+      <button onclick="fecharModal()">Fechar</button>
+    </div>
 
     <script>
       const produtos = {
@@ -57,6 +71,8 @@ index_html_content = """<!DOCTYPE html>
         ]
       };
 
+      let produtoSelecionado = null;
+
       function mostrarProdutos(categoria) {
         const container = document.getElementById('produtos');
         container.innerHTML = '';
@@ -64,21 +80,65 @@ index_html_content = """<!DOCTYPE html>
           const div = document.createElement('div');
           div.className = 'card';
           div.innerText = `${p.nome}\n${p.quantidade}g - €${p.preco.toFixed(2)}`;
+          div.onclick = () => abrirVendaPersonalizada(p);
           div.ondblclick = () => registarVenda(p.nome, p.quantidade, p.preco);
           container.appendChild(div);
         });
+      }
+
+      function abrirVendaPersonalizada(produto) {
+        produtoSelecionado = produto;
+        document.getElementById('modalTitulo').innerText = `Venda: ${produto.nome}`;
+        document.getElementById('quantidadeInput').value = '';
+        document.getElementById('modal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+      }
+
+      function registarVendaPersonalizada() {
+        const q = parseFloat(document.getElementById('quantidadeInput').value);
+        if (isNaN(q) || q <= 0) return alert('Quantidade inválida!');
+        const precoPorGrama = produtoSelecionado.preco / produtoSelecionado.quantidade;
+        const total = q * precoPorGrama;
+        alert(`Venda registada: ${produtoSelecionado.nome} (${q}g - €${total.toFixed(2)})`);
+        fecharModal();
+      }
+
+      function registarVenda(nome, quantidade, preco) {
+        const texto = `Venda rápida: ${nome} (${quantidade}g - €${preco.toFixed(2)})`;
+        alert(texto);
+      }
+
+      function fecharModal() {
+        document.getElementById('modal').style.display = 'none';
+        document.getElementById('modalGestao').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+      }
+
+      function abrirGestao() {
+        const container = document.getElementById('listaProdutos');
+        container.innerHTML = '';
+        Object.keys(produtos).forEach(cat => {
+          produtos[cat].forEach(p => {
+            const div = document.createElement('div');
+            div.style.marginBottom = '1rem';
+            div.innerText = `${cat} - ${p.nome}\nQuantidade padrão: ${p.quantidade}g\nPreço: €${p.preco.toFixed(2)}`;
+            container.appendChild(div);
+          });
+        });
+        document.getElementById('modalGestao').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
       }
     </script>
   </body>
 </html>
 """
 
-# Guardar o ficheiro index.html funcional
-with open(os.path.join(new_webapp_path, "index.html"), "w") as f:
-    f.write(index_html_content)
+# Guardar o ficheiro
+with open(os.path.join(path_v3, "index.html"), "w") as f:
+    f.write(index_html_v3)
 
-# Criar novo ZIP
-new_zip_path = "/mnt/data/chas-da-rita-webapp-v2.zip"
-shutil.make_archive(new_zip_path.replace(".zip", ""), 'zip', new_webapp_path)
+# Criar o ZIP da nova versão
+zip_v3_path = "/mnt/data/chas-da-rita-webapp-v3.zip"
+shutil.make_archive(zip_v3_path.replace(".zip", ""), 'zip', path_v3)
 
-new_zip_path
+zip_v3_path
