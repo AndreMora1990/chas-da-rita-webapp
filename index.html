@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Chás da Rita - Fase 4</title>
+  <title>Chás da Rita - Gestão de Produtos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body { font-family: sans-serif; background: #f4f0e5; color: #3e2a1c; padding: 2rem; }
@@ -11,14 +11,16 @@
     .card { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
     .card:hover { background: #fcefdc; }
     .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none; z-index: 100; }
-    .modal input { padding: 0.5rem; margin-top: 1rem; width: 100%; }
+    .modal input, .modal select { padding: 0.5rem; margin-top: 0.5rem; width: 100%; }
     .modal button { margin-top: 1rem; padding: 0.5rem 1rem; }
     #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 99; }
+    .actions button { margin-right: 0.5rem; }
   </style>
 </head>
 <body>
   <h1>Chás da Rita 🌿</h1>
   <button onclick="abrirGestao()">⚙️ Gerir Produtos</button>
+  <button onclick="adicionarProduto()">➕ Adicionar Produto</button>
   <p>Seleciona uma categoria:</p>
   <div class="grid" id="categorias">
     <div class="card" onclick="mostrarProdutos('Chás')">🍵 Chás</div>
@@ -36,31 +38,34 @@
 
   <div id="overlay"></div>
 
-  <div id="modal" class="modal">
-    <h3 id="modalTitulo">Venda personalizada</h3>
-    <input type="number" id="quantidadeInput" placeholder="Quantidade (g ou unid.)" />
-    <input type="number" id="precoInput" placeholder="Preço total (€)" />
-    <button onclick="registarVendaPersonalizada()">Registar Venda</button>
+  <div id="modalGestao" class="modal">
+    <h3>Gestão de Produtos</h3>
+    <div id="listaProdutos"></div>
+    <button onclick="fecharModal()">Fechar</button>
+  </div>
+
+  <div id="modalEditar" class="modal">
+    <h3 id="tituloModalProduto">Produto</h3>
+    <input type="text" id="inputNome" placeholder="Nome do produto" />
+    <select id="inputCategoria">
+      <option>Chás</option><option>Tisanas</option><option>Especiarias</option>
+      <option>Acessórios</option><option>Biscoitos</option><option>Amêndoas</option><option>Outros</option>
+    </select>
+    <input type="number" id="inputQuantidade" placeholder="Quantidade padrão (g/unid.)" />
+    <input type="number" id="inputPreco" placeholder="Preço (€)" />
+    <button onclick="guardarProduto()">Guardar</button>
     <button onclick="fecharModal()">Cancelar</button>
   </div>
 
   <script>
-    const produtos = {
+    let produtos = {
       'Chás': [
         { nome: 'Chá de Lúcia-lima', quantidade: 50, preco: 2.00 },
         { nome: 'Chá Verde', quantidade: 100, preco: 3.50 }
-      ],
-      'Especiarias': [
-        { nome: 'Golden Milk', quantidade: 25, preco: 1.25 },
-        { nome: 'Chai Massala', quantidade: 50, preco: 2.20 }
-      ],
-      'Amêndoas': [
-        { nome: 'Amêndoas Caramelizadas', quantidade: 100, preco: 3.00 }
       ]
     };
 
-    let produtoSelecionado = null;
-    let clickTimer = null;
+    let editarRef = null;
 
     function mostrarProdutos(categoria) {
       const container = document.getElementById('produtos');
@@ -69,52 +74,82 @@
         const div = document.createElement('div');
         div.className = 'card';
         div.innerText = `${p.nome}\n${p.quantidade}g - €${p.preco.toFixed(2)}`;
-        div.onclick = () => {
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-            registarVenda(p.nome, p.quantidade, p.preco);
-          } else {
-            clickTimer = setTimeout(() => {
-              abrirVendaPersonalizada(p);
-              clickTimer = null;
-            }, 300);
-          }
-        };
         container.appendChild(div);
       });
     }
 
-    function abrirVendaPersonalizada(produto) {
-      produtoSelecionado = produto;
-      document.getElementById('modalTitulo').innerText = `Venda: ${produto.nome}`;
-      document.getElementById('quantidadeInput').value = '';
-      document.getElementById('precoInput').value = produto.preco.toFixed(2);
-      document.getElementById('modal').style.display = 'block';
+    function abrirGestao() {
+      const lista = document.getElementById('listaProdutos');
+      lista.innerHTML = '';
+      Object.keys(produtos).forEach(cat => {
+        produtos[cat].forEach((p, i) => {
+          const linha = document.createElement('div');
+          linha.innerHTML = `
+            <strong>${p.nome}</strong> (${cat}) - ${p.quantidade}g - €${p.preco.toFixed(2)}
+            <div class="actions">
+              <button onclick="editarProduto('${cat}', ${i})">✏️ Editar</button>
+              <button onclick="eliminarProduto('${cat}', ${i})">🗑️ Apagar</button>
+            </div>`;
+          lista.appendChild(linha);
+        });
+      });
+      document.getElementById('modalGestao').style.display = 'block';
       document.getElementById('overlay').style.display = 'block';
     }
 
-    function registarVendaPersonalizada() {
-      const q = parseFloat(document.getElementById('quantidadeInput').value);
-      const p = parseFloat(document.getElementById('precoInput').value);
-      if (isNaN(q) || q <= 0 || isNaN(p) || p <= 0) {
-        return alert('Valores inválidos!');
-      }
-      alert(`Venda registada: ${produtoSelecionado.nome} (${q}g/unid. - €${p.toFixed(2)})`);
-      fecharModal();
-    }
-
-    function registarVenda(nome, quantidade, preco) {
-      alert(`Venda rápida: ${nome} (${quantidade}g - €${preco.toFixed(2)})`);
-    }
-
     function fecharModal() {
-      document.getElementById('modal').style.display = 'none';
+      document.getElementById('modalGestao').style.display = 'none';
+      document.getElementById('modalEditar').style.display = 'none';
       document.getElementById('overlay').style.display = 'none';
+      editarRef = null;
     }
 
-    function abrirGestao() {
-      alert('Gestão de produtos em breve 🛠️');
+    function editarProduto(categoria, index) {
+      editarRef = { categoria, index };
+      const p = produtos[categoria][index];
+      document.getElementById('inputNome').value = p.nome;
+      document.getElementById('inputCategoria').value = categoria;
+      document.getElementById('inputQuantidade').value = p.quantidade;
+      document.getElementById('inputPreco').value = p.preco;
+      document.getElementById('tituloModalProduto').innerText = 'Editar Produto';
+      document.getElementById('modalEditar').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function adicionarProduto() {
+      editarRef = null;
+      document.getElementById('inputNome').value = '';
+      document.getElementById('inputCategoria').value = 'Chás';
+      document.getElementById('inputQuantidade').value = '';
+      document.getElementById('inputPreco').value = '';
+      document.getElementById('tituloModalProduto').innerText = 'Adicionar Produto';
+      document.getElementById('modalEditar').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
+
+    function guardarProduto() {
+      const nome = document.getElementById('inputNome').value;
+      const cat = document.getElementById('inputCategoria').value;
+      const q = parseFloat(document.getElementById('inputQuantidade').value);
+      const p = parseFloat(document.getElementById('inputPreco').value);
+      if (!nome || isNaN(q) || isNaN(p)) {
+        alert('Preenche todos os campos!');
+        return;
+      }
+      if (!produtos[cat]) produtos[cat] = [];
+      if (editarRef) {
+        produtos[editarRef.categoria].splice(editarRef.index, 1);
+      }
+      produtos[cat].push({ nome, quantidade: q, preco: p });
+      fecharModal();
+      abrirGestao();
+    }
+
+    function eliminarProduto(categoria, index) {
+      if (confirm('Tens a certeza que queres apagar este produto?')) {
+        produtos[categoria].splice(index, 1);
+        abrirGestao();
+      }
     }
   </script>
 </body>
