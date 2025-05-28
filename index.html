@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+import os
+import shutil
+
+# Recriar estrutura para nova versão funcional da app (simulada)
+new_webapp_path = "/mnt/data/chas-da-rita-webapp-v2"
+os.makedirs(new_webapp_path, exist_ok=True)
+
+# Novo conteúdo funcional simulado
+index_html_content = """<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
@@ -55,8 +63,7 @@
         (produtos[categoria] || []).forEach(p => {
           const div = document.createElement('div');
           div.className = 'card';
-          div.innerText = `${p.nome}
-${p.quantidade}g - €${p.preco.toFixed(2)}`;
+          div.innerText = `${p.nome}\n${p.quantidade}g - €${p.preco.toFixed(2)}`;
           div.ondblclick = () => registarVenda(p.nome, p.quantidade, p.preco);
           container.appendChild(div);
         });
@@ -64,3 +71,14 @@ ${p.quantidade}g - €${p.preco.toFixed(2)}`;
     </script>
   </body>
 </html>
+"""
+
+# Guardar o ficheiro index.html funcional
+with open(os.path.join(new_webapp_path, "index.html"), "w") as f:
+    f.write(index_html_content)
+
+# Criar novo ZIP
+new_zip_path = "/mnt/data/chas-da-rita-webapp-v2.zip"
+shutil.make_archive(new_zip_path.replace(".zip", ""), 'zip', new_webapp_path)
+
+new_zip_path
