@@ -1,141 +1,189 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>Chás da Rita 🍵</title>
+  <title>Chás da Rita - Vendas + Gestão</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: sans-serif; padding: 1em; background-color: #fdf6ec; }
-    .categoria { margin-bottom: 1em; }
-    .produto { background: #fff3e0; padding: 0.5em; margin: 0.3em 0; border-radius: 8px; cursor: pointer; }
-    .venda-form, .gestao-form, .vendas-tabela { display: none; background: #ffffffcc; padding: 1em; border-radius: 8px; margin-top: 1em; }
-    button { margin-top: 0.5em; }
-    .titulo-sec { margin-top: 2em; font-weight: bold; }
+    body { font-family: sans-serif; background: #f4f0e5; color: #3e2a1c; padding: 2rem; }
+    h1 { font-size: 2em; margin-bottom: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+    .card { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
+    .card:hover { background: #fcefdc; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none; z-index: 100; }
+    .modal input, .modal select { padding: 0.5rem; margin-top: 0.5rem; width: 100%; }
+    .modal button { margin-top: 1rem; padding: 0.5rem 1rem; }
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 99; }
+    .actions button { margin-right: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #eee; }
   </style>
 </head>
 <body>
+  <h1>Chás da Rita 🌿</h1>
+  <button onclick="abrirGestao()">⚙️ Gerir Produtos</button>
+  <button onclick="adicionarProduto()">➕ Adicionar Produto</button>
+  <button onclick="mostrarVendas()">📋 Ver Vendas</button>
+  <p>Seleciona uma categoria:</p>
+  <div class="grid" id="categorias">
+    <div class="card" onclick="mostrarProdutos('Chás')">🍵 Chás</div>
+    <div class="card" onclick="mostrarProdutos('Tisanas')">🌿 Tisanas</div>
+    <div class="card" onclick="mostrarProdutos('Especiarias')">🧂 Especiarias</div>
+    <div class="card" onclick="mostrarProdutos('Acessórios')">🫖 Acessórios</div>
+    <div class="card" onclick="mostrarProdutos('Biscoitos')">🍪 Biscoitos</div>
+    <div class="card" onclick="mostrarProdutos('Amêndoas')">🌰 Amêndoas</div>
+    <div class="card" onclick="mostrarProdutos('Outros')">✨ Outros</div>
+  </div>
 
-<h1>Chás da Rita 🌿</h1>
+  <hr />
+  <h2>Produtos</h2>
+  <div id="produtos" class="grid"></div>
 
-<div id="produtos"></div>
+  <div id="overlay"></div>
 
-<h2 class="titulo-sec">➕ Registar Venda Manual</h2>
-<button onclick="abrirVendaManual()">Adicionar Venda Manual</button>
-<div class="venda-form" id="vendaManual">
-  <input id="vm_nome" placeholder="Produto" /><br />
-  <input id="vm_quantidade" placeholder="Quantidade" /><br />
-  <input id="vm_preco" placeholder="Preço total" /><br />
-  <button onclick="guardarVendaManual()">Guardar Venda</button>
-</div>
+  <div id="modalEditar" class="modal">
+    <h3 id="tituloModalProduto">Produto</h3>
+    <input type="text" id="inputNome" placeholder="Nome do produto" />
+    <select id="inputCategoria">
+      <option>Chás</option><option>Tisanas</option><option>Especiarias</option>
+      <option>Acessórios</option><option>Biscoitos</option><option>Amêndoas</option><option>Outros</option>
+    </select>
+    <input type="number" id="inputQuantidade" placeholder="Quantidade padrão" />
+    <select id="inputUnidade">
+      <option value="g">g</option>
+      <option value="unid.">unid.</option>
+    </select>
+    <input type="number" id="inputPreco" placeholder="Preço (€)" />
+    <button onclick="guardarProduto()">Guardar</button>
+    <button onclick="fecharModal()">Cancelar</button>
+  </div>
 
-<h2 class="titulo-sec">🛠️ Gerir Produtos</h2>
-<button onclick="abrirGestaoProdutos()">Gerir Produtos</button>
-<div class="gestao-form" id="gestaoProdutos">
-  <select id="gp_categoria">
-    <option>Chás</option><option>Tisanas</option><option>Especiarias</option>
-    <option>Acessórios</option><option>Biscoitos</option><option>Amêndoas</option><option>Outros</option>
-  </select><br />
-  <input id="gp_nome" placeholder="Nome" /><br />
-  <input id="gp_quantidade" placeholder="Quantidade padrão" /><br />
-  <select id="gp_unidade">
-    <option>g</option><option>unid.</option>
-  </select><br />
-  <input id="gp_preco" placeholder="Preço" /><br />
-  <button onclick="guardarProduto()">Guardar Produto</button>
-</div>
+  <div id="modalVenda" class="modal">
+    <h3 id="tituloModalVenda">Venda Personalizada</h3>
+    <input type="number" id="vendaQuantidade" placeholder="Quantidade" />
+    <input type="number" id="vendaPreco" placeholder="Preço total (€)" />
+    <button onclick="registarVendaPersonalizada()">Registar Venda</button>
+    <button onclick="fecharModal()">Cancelar</button>
+  </div>
 
-<h2 class="titulo-sec">📋 Ver Vendas</h2>
-<button onclick="verVendas()">Ver Vendas</button>
-<div class="vendas-tabela" id="vendasTabela"></div>
+  <div id="modalVendas" class="modal">
+    <h3>Histórico de Vendas</h3>
+    <div id="tabelaVendas"></div>
+    <button onclick="fecharModal()">Fechar</button>
+  </div>
 
-<script>
-  let produtos = JSON.parse(localStorage.getItem("produtos")) || {
-    'Chás': [
-      { nome: 'Chá Verde', quantidade: 100, unidade: 'g', preco: 3.5 },
-      { nome: 'Chá Preto', quantidade: 100, unidade: 'g', preco: 3.2 }
-    ]
-  };
+  <script>
+    let produtos = JSON.parse(localStorage.getItem('produtos')) || {
+      'Chás': [
+        { nome: 'Chá de Lúcia-lima', quantidade: 50, unidade: 'g', preco: 2.00 }
+      ]
+    };
 
-  let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+    let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+    let editarRef = null;
+    let produtoSelecionado = null;
+    let clickTimer = null;
 
-  function mostrarProdutos() {
-    const div = document.getElementById("produtos");
-    div.innerHTML = "";
-    Object.entries(produtos).forEach(([cat, lista]) => {
-      const catDiv = document.createElement("div");
-      catDiv.className = "categoria";
-      catDiv.innerHTML = `<h2>${cat}</h2>`;
-      lista.forEach((p, i) => {
-        const el = document.createElement("div");
-        el.className = "produto";
-        el.innerText = `${p.nome} (${p.quantidade}${p.unidade}) - €${p.preco.toFixed(2)}`;
-        el.onclick = () => vendaPersonalizada(cat, i);
-        el.ondblclick = () => vendaRapida(cat, i);
-        catDiv.appendChild(el);
+    function guardarNoLocalStorage() {
+      localStorage.setItem('produtos', JSON.stringify(produtos));
+      localStorage.setItem('vendas', JSON.stringify(vendas));
+    }
+
+    function mostrarProdutos(categoria) {
+      const container = document.getElementById('produtos');
+      container.innerHTML = '';
+      (produtos[categoria] || []).forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerText = `${p.nome}\n${p.quantidade}${p.unidade} - €${p.preco.toFixed(2)}`;
+        div.onclick = () => {
+          if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            registarVendaRapida(p);
+          } else {
+            clickTimer = setTimeout(() => {
+              abrirVendaPersonalizada(p);
+              clickTimer = null;
+            }, 300);
+          }
+        };
+        container.appendChild(div);
       });
-      div.appendChild(catDiv);
-    });
-  }
+    }
 
-  function vendaPersonalizada(cat, idx) {
-    const p = produtos[cat][idx];
-    const q = prompt(`Quantas ${p.unidade} de ${p.nome} vendeste?`, p.quantidade);
-    if (!q) return;
-    const total = (parseFloat(q) * p.preco / p.quantidade).toFixed(2);
-    vendas.push({ nome: p.nome, quantidade: q, unidade: p.unidade, preco: parseFloat(total), data: new Date().toLocaleString() });
-    localStorage.setItem("vendas", JSON.stringify(vendas));
-    alert(`Venda registada: €${total}`);
-  }
+    function abrirGestao() {
+      editarRef = null;
+      document.getElementById('tituloModalProduto').innerText = 'Adicionar Produto';
+      document.getElementById('inputNome').value = '';
+      document.getElementById('inputCategoria').value = 'Chás';
+      document.getElementById('inputQuantidade').value = '';
+      document.getElementById('inputUnidade').value = 'g';
+      document.getElementById('inputPreco').value = '';
+      document.getElementById('modalEditar').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
 
-  function vendaRapida(cat, idx) {
-    const p = produtos[cat][idx];
-    vendas.push({ nome: p.nome, quantidade: p.quantidade, unidade: p.unidade, preco: p.preco, data: new Date().toLocaleString() });
-    localStorage.setItem("vendas", JSON.stringify(vendas));
-    alert(`Venda rápida registada: €${p.preco}`);
-  }
+    function adicionarProduto() {
+      abrirGestao();
+    }
 
-  function abrirVendaManual() {
-    document.getElementById("vendaManual").style.display = "block";
-  }
+    function guardarProduto() {
+      const nome = document.getElementById('inputNome').value;
+      const cat = document.getElementById('inputCategoria').value;
+      const q = parseFloat(document.getElementById('inputQuantidade').value);
+      const un = document.getElementById('inputUnidade').value;
+      const p = parseFloat(document.getElementById('inputPreco').value);
+      if (!nome || isNaN(q) || isNaN(p)) return alert('Preenche todos os campos!');
+      if (!produtos[cat]) produtos[cat] = [];
+      produtos[cat].push({ nome, quantidade: q, unidade: un, preco: p });
+      guardarNoLocalStorage();
+      fecharModal();
+    }
 
-  function guardarVendaManual() {
-    const nome = document.getElementById("vm_nome").value;
-    const quantidade = document.getElementById("vm_quantidade").value;
-    const preco = document.getElementById("vm_preco").value;
-    vendas.push({ nome, quantidade, unidade: "", preco: parseFloat(preco), data: new Date().toLocaleString() });
-    localStorage.setItem("vendas", JSON.stringify(vendas));
-    alert("Venda manual registada.");
-    document.getElementById("vendaManual").style.display = "none";
-  }
+    function abrirVendaPersonalizada(p) {
+      produtoSelecionado = p;
+      document.getElementById('tituloModalVenda').innerText = `Venda: ${p.nome}`;
+      document.getElementById('vendaQuantidade').value = '';
+      document.getElementById('vendaPreco').value = p.preco.toFixed(2);
+      document.getElementById('modalVenda').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
 
-  function abrirGestaoProdutos() {
-    document.getElementById("gestaoProdutos").style.display = "block";
-  }
+    function registarVendaPersonalizada() {
+      const q = parseFloat(document.getElementById('vendaQuantidade').value);
+      const p = parseFloat(document.getElementById('vendaPreco').value);
+      if (isNaN(q) || isNaN(p)) return alert('Preenche a quantidade e o preço!');
+      vendas.push({ nome: produtoSelecionado.nome, quantidade: q, unidade: produtoSelecionado.unidade, preco: p, data: new Date().toLocaleString() });
+      guardarNoLocalStorage();
+      alert('Venda registada!');
+      fecharModal();
+    }
 
-  function guardarProduto() {
-    const cat = document.getElementById("gp_categoria").value;
-    const nome = document.getElementById("gp_nome").value;
-    const quantidade = parseFloat(document.getElementById("gp_quantidade").value);
-    const unidade = document.getElementById("gp_unidade").value;
-    const preco = parseFloat(document.getElementById("gp_preco").value);
-    const novo = { nome, quantidade, unidade, preco };
-    if (!produtos[cat]) produtos[cat] = [];
-    produtos[cat].push(novo);
-    localStorage.setItem("produtos", JSON.stringify(produtos));
-    alert("Produto guardado.");
-    document.getElementById("gestaoProdutos").style.display = "none";
-    mostrarProdutos();
-  }
+    function registarVendaRapida(p) {
+      vendas.push({ nome: p.nome, quantidade: p.quantidade, unidade: p.unidade, preco: p.preco, data: new Date().toLocaleString() });
+      guardarNoLocalStorage();
+      alert('Venda rápida registada!');
+    }
 
-  function verVendas() {
-    const div = document.getElementById("vendasTabela");
-    div.style.display = "block";
-    div.innerHTML = "<table><tr><th>Produto</th><th>Qtd</th><th>Unid.</th><th>Preço</th><th>Data</th></tr>" +
-      vendas.map(v => `<tr><td>${v.nome}</td><td>${v.quantidade}</td><td>${v.unidade}</td><td>€${v.preco.toFixed(2)}</td><td>${v.data}</td></tr>`).join("") + "</table>";
-  }
+    function mostrarVendas() {
+      const tabela = document.getElementById('tabelaVendas');
+      if (vendas.length === 0) return tabela.innerHTML = '<p>Sem vendas registadas.</p>';
+      let html = '<table><tr><th>Produto</th><th>Quantidade</th><th>Preço</th><th>Data</th></tr>';
+      vendas.forEach(v => {
+        html += `<tr><td>${v.nome}</td><td>${v.quantidade} ${v.unidade}</td><td>€${v.preco.toFixed(2)}</td><td>${v.data}</td></tr>`;
+      });
+      html += '</table>';
+      tabela.innerHTML = html;
+      document.getElementById('modalVendas').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+    }
 
-  mostrarProdutos();
-</script>
-
+    function fecharModal() {
+      document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+      document.getElementById('overlay').style.display = 'none';
+    }
+  </script>
 </body>
 </html>
