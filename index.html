@@ -2,15 +2,65 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Chás da Rita</title>
+    <title>Chás da Rita - Vendas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      body { font-family: sans-serif; background: #f4f0e5; color: #5c3d2e; text-align: center; padding: 2rem; }
+      body { font-family: sans-serif; background: #f4f0e5; color: #3e2a1c; padding: 2rem; }
       h1 { font-size: 2em; margin-bottom: 1rem; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+      .card { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
+      .card:hover { background: #fcefdc; }
     </style>
+    <script>
+      function registarVenda(nome, quantidade, preco) {
+        const texto = `Venda registada: ${nome} (${quantidade}g - €${preco.toFixed(2)})`;
+        alert(texto);
+      }
+    </script>
   </head>
   <body>
-    <h1>App Chás da Rita 🌿</h1>
-    <p>Versão web pronta a ser publicada com GitHub Pages.</p>
+    <h1>Chás da Rita 🌿</h1>
+    <p>Seleciona uma categoria:</p>
+    <div class="grid">
+      <div class="card" onclick="mostrarProdutos('Chás')">🍵 Chás</div>
+      <div class="card" onclick="mostrarProdutos('Tisanas')">🌿 Tisanas</div>
+      <div class="card" onclick="mostrarProdutos('Especiarias')">🧂 Especiarias</div>
+      <div class="card" onclick="mostrarProdutos('Acessórios')">🫖 Acessórios</div>
+      <div class="card" onclick="mostrarProdutos('Biscoitos')">🍪 Biscoitos</div>
+      <div class="card" onclick="mostrarProdutos('Amêndoas')">🌰 Amêndoas</div>
+      <div class="card" onclick="mostrarProdutos('Outros')">✨ Outros</div>
+    </div>
+    <hr>
+    <h2>Produtos</h2>
+    <div id="produtos" class="grid"></div>
+
+    <script>
+      const produtos = {
+        'Chás': [
+          { nome: 'Chá de Lúcia-lima', quantidade: 50, preco: 2.00 },
+          { nome: 'Chá Verde', quantidade: 100, preco: 3.50 }
+        ],
+        'Especiarias': [
+          { nome: 'Golden Milk', quantidade: 25, preco: 1.25 },
+          { nome: 'Chai Massala', quantidade: 50, preco: 2.20 }
+        ],
+        'Amêndoas': [
+          { nome: 'Amêndoas Caramelizadas', quantidade: 100, preco: 3.00 }
+        ]
+      };
+
+      function mostrarProdutos(categoria) {
+        const container = document.getElementById('produtos');
+        container.innerHTML = '';
+        (produtos[categoria] || []).forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerText = `${p.nome}
+${p.quantidade}g - €${p.preco.toFixed(2)}`;
+          div.ondblclick = () => registarVenda(p.nome, p.quantidade, p.preco);
+          container.appendChild(div);
+        });
+      }
+    </script>
   </body>
 </html>
