@@ -1,1 +1,141 @@
-<!-- Versão 8: Em preparação -->
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chás da Rita 🍵</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: sans-serif; padding: 1em; background-color: #fdf6ec; }
+    .categoria { margin-bottom: 1em; }
+    .produto { background: #fff3e0; padding: 0.5em; margin: 0.3em 0; border-radius: 8px; cursor: pointer; }
+    .venda-form, .gestao-form, .vendas-tabela { display: none; background: #ffffffcc; padding: 1em; border-radius: 8px; margin-top: 1em; }
+    button { margin-top: 0.5em; }
+    .titulo-sec { margin-top: 2em; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h1>Chás da Rita 🌿</h1>
+
+<div id="produtos"></div>
+
+<h2 class="titulo-sec">➕ Registar Venda Manual</h2>
+<button onclick="abrirVendaManual()">Adicionar Venda Manual</button>
+<div class="venda-form" id="vendaManual">
+  <input id="vm_nome" placeholder="Produto" /><br />
+  <input id="vm_quantidade" placeholder="Quantidade" /><br />
+  <input id="vm_preco" placeholder="Preço total" /><br />
+  <button onclick="guardarVendaManual()">Guardar Venda</button>
+</div>
+
+<h2 class="titulo-sec">🛠️ Gerir Produtos</h2>
+<button onclick="abrirGestaoProdutos()">Gerir Produtos</button>
+<div class="gestao-form" id="gestaoProdutos">
+  <select id="gp_categoria">
+    <option>Chás</option><option>Tisanas</option><option>Especiarias</option>
+    <option>Acessórios</option><option>Biscoitos</option><option>Amêndoas</option><option>Outros</option>
+  </select><br />
+  <input id="gp_nome" placeholder="Nome" /><br />
+  <input id="gp_quantidade" placeholder="Quantidade padrão" /><br />
+  <select id="gp_unidade">
+    <option>g</option><option>unid.</option>
+  </select><br />
+  <input id="gp_preco" placeholder="Preço" /><br />
+  <button onclick="guardarProduto()">Guardar Produto</button>
+</div>
+
+<h2 class="titulo-sec">📋 Ver Vendas</h2>
+<button onclick="verVendas()">Ver Vendas</button>
+<div class="vendas-tabela" id="vendasTabela"></div>
+
+<script>
+  let produtos = JSON.parse(localStorage.getItem("produtos")) || {
+    'Chás': [
+      { nome: 'Chá Verde', quantidade: 100, unidade: 'g', preco: 3.5 },
+      { nome: 'Chá Preto', quantidade: 100, unidade: 'g', preco: 3.2 }
+    ]
+  };
+
+  let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+
+  function mostrarProdutos() {
+    const div = document.getElementById("produtos");
+    div.innerHTML = "";
+    Object.entries(produtos).forEach(([cat, lista]) => {
+      const catDiv = document.createElement("div");
+      catDiv.className = "categoria";
+      catDiv.innerHTML = `<h2>${cat}</h2>`;
+      lista.forEach((p, i) => {
+        const el = document.createElement("div");
+        el.className = "produto";
+        el.innerText = `${p.nome} (${p.quantidade}${p.unidade}) - €${p.preco.toFixed(2)}`;
+        el.onclick = () => vendaPersonalizada(cat, i);
+        el.ondblclick = () => vendaRapida(cat, i);
+        catDiv.appendChild(el);
+      });
+      div.appendChild(catDiv);
+    });
+  }
+
+  function vendaPersonalizada(cat, idx) {
+    const p = produtos[cat][idx];
+    const q = prompt(`Quantas ${p.unidade} de ${p.nome} vendeste?`, p.quantidade);
+    if (!q) return;
+    const total = (parseFloat(q) * p.preco / p.quantidade).toFixed(2);
+    vendas.push({ nome: p.nome, quantidade: q, unidade: p.unidade, preco: parseFloat(total), data: new Date().toLocaleString() });
+    localStorage.setItem("vendas", JSON.stringify(vendas));
+    alert(`Venda registada: €${total}`);
+  }
+
+  function vendaRapida(cat, idx) {
+    const p = produtos[cat][idx];
+    vendas.push({ nome: p.nome, quantidade: p.quantidade, unidade: p.unidade, preco: p.preco, data: new Date().toLocaleString() });
+    localStorage.setItem("vendas", JSON.stringify(vendas));
+    alert(`Venda rápida registada: €${p.preco}`);
+  }
+
+  function abrirVendaManual() {
+    document.getElementById("vendaManual").style.display = "block";
+  }
+
+  function guardarVendaManual() {
+    const nome = document.getElementById("vm_nome").value;
+    const quantidade = document.getElementById("vm_quantidade").value;
+    const preco = document.getElementById("vm_preco").value;
+    vendas.push({ nome, quantidade, unidade: "", preco: parseFloat(preco), data: new Date().toLocaleString() });
+    localStorage.setItem("vendas", JSON.stringify(vendas));
+    alert("Venda manual registada.");
+    document.getElementById("vendaManual").style.display = "none";
+  }
+
+  function abrirGestaoProdutos() {
+    document.getElementById("gestaoProdutos").style.display = "block";
+  }
+
+  function guardarProduto() {
+    const cat = document.getElementById("gp_categoria").value;
+    const nome = document.getElementById("gp_nome").value;
+    const quantidade = parseFloat(document.getElementById("gp_quantidade").value);
+    const unidade = document.getElementById("gp_unidade").value;
+    const preco = parseFloat(document.getElementById("gp_preco").value);
+    const novo = { nome, quantidade, unidade, preco };
+    if (!produtos[cat]) produtos[cat] = [];
+    produtos[cat].push(novo);
+    localStorage.setItem("produtos", JSON.stringify(produtos));
+    alert("Produto guardado.");
+    document.getElementById("gestaoProdutos").style.display = "none";
+    mostrarProdutos();
+  }
+
+  function verVendas() {
+    const div = document.getElementById("vendasTabela");
+    div.style.display = "block";
+    div.innerHTML = "<table><tr><th>Produto</th><th>Qtd</th><th>Unid.</th><th>Preço</th><th>Data</th></tr>" +
+      vendas.map(v => `<tr><td>${v.nome}</td><td>${v.quantidade}</td><td>${v.unidade}</td><td>€${v.preco.toFixed(2)}</td><td>${v.data}</td></tr>`).join("") + "</table>";
+  }
+
+  mostrarProdutos();
+</script>
+
+</body>
+</html>
