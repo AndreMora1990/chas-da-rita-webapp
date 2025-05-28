@@ -1,12 +1,4 @@
-import os
-import shutil
-
-# Caminho para a nova versão com venda personalizada e gestão de produtos
-path_v3 = "/mnt/data/chas-da-rita-webapp-v3"
-os.makedirs(path_v3, exist_ok=True)
-
-# Novo index.html com clique simples = venda personalizada e menu de gestão de produtos
-index_html_v3 = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
@@ -79,7 +71,8 @@ index_html_v3 = """<!DOCTYPE html>
         (produtos[categoria] || []).forEach(p => {
           const div = document.createElement('div');
           div.className = 'card';
-          div.innerText = `${p.nome}\n${p.quantidade}g - €${p.preco.toFixed(2)}`;
+          div.innerText = `${p.nome}
+${p.quantidade}g - €${p.preco.toFixed(2)}`;
           div.onclick = () => abrirVendaPersonalizada(p);
           div.ondblclick = () => registarVenda(p.nome, p.quantidade, p.preco);
           container.appendChild(div);
@@ -121,7 +114,9 @@ index_html_v3 = """<!DOCTYPE html>
           produtos[cat].forEach(p => {
             const div = document.createElement('div');
             div.style.marginBottom = '1rem';
-            div.innerText = `${cat} - ${p.nome}\nQuantidade padrão: ${p.quantidade}g\nPreço: €${p.preco.toFixed(2)}`;
+            div.innerText = `${cat} - ${p.nome}
+Quantidade padrão: ${p.quantidade}g
+Preço: €${p.preco.toFixed(2)}`;
             container.appendChild(div);
           });
         });
@@ -131,14 +126,3 @@ index_html_v3 = """<!DOCTYPE html>
     </script>
   </body>
 </html>
-"""
-
-# Guardar o ficheiro
-with open(os.path.join(path_v3, "index.html"), "w") as f:
-    f.write(index_html_v3)
-
-# Criar o ZIP da nova versão
-zip_v3_path = "/mnt/data/chas-da-rita-webapp-v3.zip"
-shutil.make_archive(zip_v3_path.replace(".zip", ""), 'zip', path_v3)
-
-zip_v3_path
