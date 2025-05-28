@@ -2,188 +2,94 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Chás da Rita - Vendas + Gestão</title>
+  <title>Chás da Rita - V7</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body { font-family: sans-serif; background: #f4f0e5; color: #3e2a1c; padding: 2rem; }
-    h1 { font-size: 2em; margin-bottom: 1rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
-    .card { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); cursor: pointer; }
-    .card:hover { background: #fcefdc; }
-    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none; z-index: 100; }
-    .modal input, .modal select { padding: 0.5rem; margin-top: 0.5rem; width: 100%; }
-    .modal button { margin-top: 1rem; padding: 0.5rem 1rem; }
-    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 99; }
-    .actions button { margin-right: 0.5rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
-    th { background: #eee; }
-  </style>
-</head>
-<body>
-  <h1>Chás da Rita 🌿</h1>
-  <button onclick="abrirGestao()">⚙️ Gerir Produtos</button>
-  <button onclick="adicionarProduto()">➕ Adicionar Produto</button>
-  <button onclick="mostrarVendas()">📋 Ver Vendas</button>
-  <p>Seleciona uma categoria:</p>
-  <div class="grid" id="categorias">
-    <div class="card" onclick="mostrarProdutos('Chás')">🍵 Chás</div>
-    <div class="card" onclick="mostrarProdutos('Tisanas')">🌿 Tisanas</div>
-    <div class="card" onclick="mostrarProdutos('Especiarias')">🧂 Especiarias</div>
-    <div class="card" onclick="mostrarProdutos('Acessórios')">🫖 Acessórios</div>
-    <div class="card" onclick="mostrarProdutos('Biscoitos')">🍪 Biscoitos</div>
-    <div class="card" onclick="mostrarProdutos('Amêndoas')">🌰 Amêndoas</div>
-    <div class="card" onclick="mostrarProdutos('Outros')">✨ Outros</div>
-  </div>
-
-  <hr />
-  <h2>Produtos</h2>
-  <div id="produtos" class="grid"></div>
-
-  <div id="overlay"></div>
-
-  <div id="modalEditar" class="modal">
-    <h3 id="tituloModalProduto">Produto</h3>
-    <input type="text" id="inputNome" placeholder="Nome do produto" />
-    <select id="inputCategoria">
-      <option>Chás</option><option>Tisanas</option><option>Especiarias</option>
-      <option>Acessórios</option><option>Biscoitos</option><option>Amêndoas</option><option>Outros</option>
-    </select>
-    <input type="number" id="inputQuantidade" placeholder="Quantidade padrão" />
-    <select id="inputUnidade">
-      <option value="g">g</option>
-      <option value="unid.">unid.</option>
-    </select>
-    <input type="number" id="inputPreco" placeholder="Preço (€)" />
-    <button onclick="guardarProduto()">Guardar</button>
-    <button onclick="fecharModal()">Cancelar</button>
-  </div>
-
-  <div id="modalVenda" class="modal">
-    <h3 id="tituloModalVenda">Venda Personalizada</h3>
-    <input type="number" id="vendaQuantidade" placeholder="Quantidade" />
-    <input type="number" id="vendaPreco" placeholder="Preço total (€)" />
-    <button onclick="registarVendaPersonalizada()">Registar Venda</button>
-    <button onclick="fecharModal()">Cancelar</button>
-  </div>
-
-  <div id="modalVendas" class="modal">
-    <h3>Histórico de Vendas</h3>
-    <div id="tabelaVendas"></div>
-    <button onclick="fecharModal()">Fechar</button>
-  </div>
-
   <script>
-    let produtos = JSON.parse(localStorage.getItem('produtos')) || {
+    let produtos = {
       'Chás': [
-        { nome: 'Chá de Lúcia-lima', quantidade: 50, unidade: 'g', preco: 2.00 }
+        { nome: 'Chá Verde', quantidade: 100, unidade: 'g', preco: 3.5 },
+        { nome: 'Chá Preto', quantidade: 100, unidade: 'g', preco: 3.2 },
+        { nome: 'Chá Branco', quantidade: 50, unidade: 'g', preco: 4.5 },
+        { nome: 'Chá Oolong', quantidade: 50, unidade: 'g', preco: 4.0 },
+        { nome: 'Chá de Jasmim', quantidade: 50, unidade: 'g', preco: 3.8 },
+        { nome: 'Chá de Lúcia-lima', quantidade: 50, unidade: 'g', preco: 2.5 }
+      ],
+      'Tisanas': [
+        { nome: 'Tisana de Camomila', quantidade: 50, unidade: 'g', preco: 2.0 },
+        { nome: 'Tisana de Erva-príncipe', quantidade: 50, unidade: 'g', preco: 2.0 }
+      ],
+      'Especiarias': [
+        { nome: 'Golden Milk', quantidade: 25, unidade: 'g', preco: 1.25 },
+        { nome: 'Chai Massala', quantidade: 50, unidade: 'g', preco: 2.2 }
+      ],
+      'Acessórios': [
+        { nome: 'Infusor Bola Inox', quantidade: 1, unidade: 'unid.', preco: 3.0 }
+      ],
+      'Biscoitos': [
+        { nome: 'Biscoitos de Amêndoa', quantidade: 1, unidade: 'unid.', preco: 0.5 }
+      ],
+      'Amêndoas': [
+        { nome: 'Amêndoas Caramelizadas', quantidade: 100, unidade: 'g', preco: 3.0 }
+      ],
+      'Outros': [
+        { nome: 'Cacau em pó artesanal', quantidade: 100, unidade: 'g', preco: 2.8 }
       ]
     };
 
-    let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-    let editarRef = null;
-    let produtoSelecionado = null;
-    let clickTimer = null;
-
-    function guardarNoLocalStorage() {
-      localStorage.setItem('produtos', JSON.stringify(produtos));
-      localStorage.setItem('vendas', JSON.stringify(vendas));
-    }
-
-    function mostrarProdutos(categoria) {
-      const container = document.getElementById('produtos');
-      container.innerHTML = '';
-      (produtos[categoria] || []).forEach((p, i) => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerText = `${p.nome}\n${p.quantidade}${p.unidade} - €${p.preco.toFixed(2)}`;
-        div.onclick = () => {
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-            registarVendaRapida(p);
-          } else {
-            clickTimer = setTimeout(() => {
-              abrirVendaPersonalizada(p);
-              clickTimer = null;
-            }, 300);
-          }
-        };
-        container.appendChild(div);
-      });
-    }
+    let editarProdutoCat = null;
+    let editarProdutoIdx = null;
 
     function abrirGestao() {
-      editarRef = null;
-      document.getElementById('tituloModalProduto').innerText = 'Adicionar Produto';
-      document.getElementById('inputNome').value = '';
-      document.getElementById('inputCategoria').value = 'Chás';
-      document.getElementById('inputQuantidade').value = '';
-      document.getElementById('inputUnidade').value = 'g';
-      document.getElementById('inputPreco').value = '';
-      document.getElementById('modalEditar').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
+      const lista = Object.entries(produtos).map(([cat, items]) =>
+        items.map((p, i) => `<li>${p.nome} (${p.quantidade}${p.unidade} - €${p.preco.toFixed(2)}) 
+        <button onclick="editarProduto('${cat}', ${i})">Editar</button></li>`).join("")
+      ).join("");
+      document.getElementById('lista').innerHTML = lista;
+      document.getElementById('gestao').style.display = 'block';
     }
 
-    function adicionarProduto() {
-      abrirGestao();
+    function editarProduto(cat, idx) {
+      const p = produtos[cat][idx];
+      editarProdutoCat = cat;
+      editarProdutoIdx = idx;
+      document.getElementById('nome').value = p.nome;
+      document.getElementById('quantidade').value = p.quantidade;
+      document.getElementById('unidade').value = p.unidade;
+      document.getElementById('preco').value = p.preco;
+      document.getElementById('formulario').style.display = 'block';
     }
 
     function guardarProduto() {
-      const nome = document.getElementById('inputNome').value;
-      const cat = document.getElementById('inputCategoria').value;
-      const q = parseFloat(document.getElementById('inputQuantidade').value);
-      const un = document.getElementById('inputUnidade').value;
-      const p = parseFloat(document.getElementById('inputPreco').value);
-      if (!nome || isNaN(q) || isNaN(p)) return alert('Preenche todos os campos!');
-      if (!produtos[cat]) produtos[cat] = [];
-      produtos[cat].push({ nome, quantidade: q, unidade: un, preco: p });
-      guardarNoLocalStorage();
-      fecharModal();
-    }
-
-    function abrirVendaPersonalizada(p) {
-      produtoSelecionado = p;
-      document.getElementById('tituloModalVenda').innerText = `Venda: ${p.nome}`;
-      document.getElementById('vendaQuantidade').value = '';
-      document.getElementById('vendaPreco').value = p.preco.toFixed(2);
-      document.getElementById('modalVenda').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
-    }
-
-    function registarVendaPersonalizada() {
-      const q = parseFloat(document.getElementById('vendaQuantidade').value);
-      const p = parseFloat(document.getElementById('vendaPreco').value);
-      if (isNaN(q) || isNaN(p)) return alert('Preenche a quantidade e o preço!');
-      vendas.push({ nome: produtoSelecionado.nome, quantidade: q, unidade: produtoSelecionado.unidade, preco: p, data: new Date().toLocaleString() });
-      guardarNoLocalStorage();
-      alert('Venda registada!');
-      fecharModal();
-    }
-
-    function registarVendaRapida(p) {
-      vendas.push({ nome: p.nome, quantidade: p.quantidade, unidade: p.unidade, preco: p.preco, data: new Date().toLocaleString() });
-      guardarNoLocalStorage();
-      alert('Venda rápida registada!');
-    }
-
-    function mostrarVendas() {
-      const tabela = document.getElementById('tabelaVendas');
-      if (vendas.length === 0) return tabela.innerHTML = '<p>Sem vendas registadas.</p>';
-      let html = '<table><tr><th>Produto</th><th>Quantidade</th><th>Preço</th><th>Data</th></tr>';
-      vendas.forEach(v => {
-        html += `<tr><td>${v.nome}</td><td>${v.quantidade} ${v.unidade}</td><td>€${v.preco.toFixed(2)}</td><td>${v.data}</td></tr>`;
-      });
-      html += '</table>';
-      tabela.innerHTML = html;
-      document.getElementById('modalVendas').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
-    }
-
-    function fecharModal() {
-      document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-      document.getElementById('overlay').style.display = 'none';
+      const p = {
+        nome: document.getElementById('nome').value,
+        quantidade: parseFloat(document.getElementById('quantidade').value),
+        unidade: document.getElementById('unidade').value,
+        preco: parseFloat(document.getElementById('preco').value)
+      };
+      if (editarProdutoCat && editarProdutoIdx !== null) {
+        produtos[editarProdutoCat][editarProdutoIdx] = p;
+      }
+      document.getElementById('formulario').style.display = 'none';
+      abrirGestao();
     }
   </script>
+</head>
+<body>
+  <h1>Chás da Rita 🌿</h1>
+  <button onclick="abrirGestao()">Gerir Produtos</button>
+
+  <div id="gestao" style="display:none">
+    <h2>Lista de Produtos</h2>
+    <ul id="lista"></ul>
+  </div>
+
+  <div id="formulario" style="display:none">
+    <h3>Editar Produto</h3>
+    <input id="nome" placeholder="Nome"><br>
+    <input id="quantidade" placeholder="Quantidade"><br>
+    <select id="unidade"><option>g</option><option>unid.</option></select><br>
+    <input id="preco" placeholder="Preço"><br>
+    <button onclick="guardarProduto()">Guardar</button>
+  </div>
 </body>
 </html>
